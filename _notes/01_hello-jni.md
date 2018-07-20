@@ -1,4 +1,4 @@
-Android Studio 3.0 提供了新的NDK支持，使用CMake来编译。
+Android Studio 3.0 提供了新的NDK支持，使用[CMake Android plugin](https://developer.android.com/studio/projects/add-native-code.html)插件来编译。
 
 ## build.gradle
 
@@ -111,5 +111,3 @@ Java_com_example_ccfyyn_prov3_MainActivity_stringFromJNI(
     return env->NewStringUTF(hello.c_str());
 }
 ```
-
-[Link](https://developer.android.com/studio/projects/add-native-code)
