@@ -25,6 +25,10 @@ Known Issues
 
 For samples using `Android.mk` build system with `ndk-build` see the [android-mk](https://github.com/googlesamples/android-ndk/tree/android-mk) branch.
 
+DocumentationNotes
+------------------
+- [hello-jni](https://github.com/a284628487/android-ndk/_notes/01_hello-jni.md)
+
 Build Steps
 ----------
 - With Android Studio: "Open An Existing Android Studio Project" or "File" > "Open", then nevigate to & select project's build.gradle file.
