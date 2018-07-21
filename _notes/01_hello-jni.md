@@ -1,3 +1,5 @@
+[SourceCode](https://github.com/a284628487/android-ndk/tree/master/hello-jni)
+
 Android Studio 3.0 提供了新的NDK支持，使用[CMake Android plugin](https://developer.android.com/studio/projects/add-native-code.html)插件来编译。
 
 ## build.gradle
@@ -76,11 +78,11 @@ cmake_minimum_required(VERSION 3.4.1)
 
 # 通过提供源文件(可能为多个)创建并命令一个库，可以设置为 STATIC 或者 SHARED。
 # 可以配置多个库文件，CMake会自动编译它们。
-add_library( native-lib # The name of the library.
+add_library( hello-jni # The name of the library.
              # 设置库为共享库
              SHARED
              # Provides a relative path to your source file(s).
-             src/main/cpp/native-lib.cpp )
+             src/main/cpp/hello-jni.cpp )
 
 # 查找一个系统库，并提供一个别名。
 find_library( # 指定别名
@@ -90,24 +92,59 @@ find_library( # 指定别名
 
 # 指定需要链接的库，可以指定多个库文件，包括自定义的，第三方的，或者是系统的
 target_link_libraries( # 指定目标输出库名称
-                       native-lib
+                       hello-jni
                        # 指定依赖链接库
                        ${log-lib} )
 ```
 
-## native-lib.cpp
+## hello-jni.c
 
-```C++
+```C
+#include <string.h>
 #include <jni.h>
-#include <string>
 
-extern "C" JNIEXPORT jstring
+/* This is a trivial JNI example where we use a native method
+ * to return a new VM String. See the corresponding Java source
+ * file located at:
+ *
+ *   hello-jni/app/src/main/java/com/example/hellojni/HelloJni.java
+ */
+JNIEXPORT jstring JNICALL
+Java_com_example_hellojni_HelloJni_stringFromJNI( JNIEnv* env,
+                                                  jobject thiz )
+{
+#if defined(__arm__)
+    #if defined(__ARM_ARCH_7A__)
+    #if defined(__ARM_NEON__)
+      #if defined(__ARM_PCS_VFP)
+        #define ABI "armeabi-v7a/NEON (hard-float)"
+      #else
+        #define ABI "armeabi-v7a/NEON"
+      #endif
+    #else
+      #if defined(__ARM_PCS_VFP)
+        #define ABI "armeabi-v7a (hard-float)"
+      #else
+        #define ABI "armeabi-v7a"
+      #endif
+    #endif
+  #else
+   #define ABI "armeabi"
+  #endif
+#elif defined(__i386__)
+#define ABI "x86"
+#elif defined(__x86_64__)
+#define ABI "x86_64"
+#elif defined(__mips64)  /* mips64el-* toolchain defines __mips__ too */
+#define ABI "mips64"
+#elif defined(__mips__)
+#define ABI "mips"
+#elif defined(__aarch64__)
+#define ABI "arm64-v8a"
+#else
+#define ABI "unknown"
+#endif
 
-JNICALL
-Java_com_example_ccfyyn_prov3_MainActivity_stringFromJNI(
-        JNIEnv *env,
-        jobject /* this */) {
-    std::string hello = "Hello from C++";
-    return env->NewStringUTF(hello.c_str());
+    return (*env)->NewStringUTF(env, "Hello from JNI !  Compiled with ABI " ABI ".");
 }
 ```

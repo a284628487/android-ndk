@@ -28,6 +28,7 @@ For samples using `Android.mk` build system with `ndk-build` see the [android-mk
 DocumentationNotes
 ------------------
 - [hello-jni](https://github.com/a284628487/android-ndk/blob/master/_notes/01_hello-jni.md)
+- [hello-jnicallback](https://github.com/a284628487/android-ndk/blob/master/_notes/02_hello-jnicallback.md)
 
 Build Steps
 ----------
