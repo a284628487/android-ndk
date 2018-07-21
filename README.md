@@ -29,6 +29,7 @@ DocumentationNotes
 ------------------
 - [hello-jni](https://github.com/a284628487/android-ndk/blob/master/_notes/01_hello-jni.md)
 - [hello-jnicallback](https://github.com/a284628487/android-ndk/blob/master/_notes/02_hello-jnicallback.md)
+- [hello-gl2](https://github.com/a284628487/android-ndk/blob/master/_notes/03_hello-gl2.md)
 
 Build Steps
 ----------

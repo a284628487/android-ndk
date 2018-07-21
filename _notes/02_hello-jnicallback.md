@@ -2,7 +2,7 @@
 
 ## hello-jnicallback.c
 
-```
+```C
 #include <string.h>
 #include <inttypes.h>
 #include <pthread.h>
@@ -278,9 +278,14 @@ Java_com_example_hellojnicallback_MainActivity_StopTicks(JNIEnv *env, jobject in
 ### JNI_OnLoad
 通过System.loadLibrary("")调用时，JNI_OnLoad方法被调用一次，可以用于初始化操作，可以使用GetEnv，创建JNIEnv对象。
 ```C
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
+    JNIEnv *env;
     if ((*vm)->GetEnv(vm, (void **) &env, JNI_VERSION_1_6) != JNI_OK) {
         return JNI_ERR; // JNI version not supported.
     }
+    //
+    return JNI_VERSION_1_6;
+}
 ```
 
 ### time struct
@@ -301,7 +306,7 @@ struct timespec {
 ```
 
 创建一个timeval结构体
-```
+```C
 const struct timeval kOneSecond = {
         (__kernel_time_t) 1,
         (__kernel_suseconds_t) 0
@@ -315,7 +320,7 @@ const struct timeval kOneSecond = {
 ```
 
 3. 时间操作函数：
-```
+```C
 void timeradd(struct timeval *a, struct timeval *b, struct timeval *res); // res = a + b
 void timersub(struct timeval *a, struct timeval *b, struct timeval *res); // res = a - b
 ```
@@ -379,7 +384,7 @@ void *UpdateTicks(void *context) {
 ```C
 void stopThread() {
     // 设置done为1，在上面的while循环中，如果done为1，则终止while循环。
-	pthread_mutex_lock(&g_ctx.lock);
+    pthread_mutex_lock(&g_ctx.lock);
     g_ctx.done = 1;
     pthread_mutex_unlock(&g_ctx.lock);
     // destroy线程对象.
