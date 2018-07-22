@@ -31,6 +31,7 @@ DocumentationNotes
 - [hello-jnicallback](https://github.com/a284628487/android-ndk/blob/master/_notes/02_hello-jnicallback.md)
 - [hello-gl2](https://github.com/a284628487/android-ndk/blob/master/_notes/03_hello-gl2.md)
 - [jni-camera](https://github.com/a284628487/android-ndk-plus/tree/master/jni-camera)
+- [jni-bitmap](https://github.com/a284628487/android-ndk-plus/tree/master/jni-bitmap)
 
 Build Steps
 ----------
