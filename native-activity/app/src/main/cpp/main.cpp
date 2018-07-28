@@ -57,13 +57,13 @@ struct engine {
     EGLDisplay display;
     EGLSurface surface;
     EGLContext context;
-    int32_t width;
-    int32_t height;
+    int32_t width; // 屏幕宽度
+    int32_t height; // 屏幕高度
     struct saved_state state;
 };
 
 /**
- * Initialize an EGL context for the current display.
+ * 初始化EGL配置环境
  */
 static int engine_init_display(struct engine* engine) {
     // initialize OpenGL ES and EGL
@@ -93,7 +93,7 @@ static int engine_init_display(struct engine* engine) {
     /* Here, the application chooses the configuration it desires.
      * find the best match if possible, otherwise use the very first one
      */
-    eglChooseConfig(display, attribs, nullptr,0, &numConfigs);
+    eglChooseConfig(display, attribs, nullptr, 0, &numConfigs);
     std::unique_ptr<EGLConfig[]> supportedConfigs(new EGLConfig[numConfigs]);
     assert(supportedConfigs);
     eglChooseConfig(display, attribs, supportedConfigs.get(), numConfigs, &numConfigs);
@@ -155,7 +155,7 @@ static int engine_init_display(struct engine* engine) {
 }
 
 /**
- * Just the current frame in the display.
+ * 绘制，在这里只绘制了颜色。
  */
 static void engine_draw_frame(struct engine* engine) {
     if (engine->display == NULL) {
@@ -167,12 +167,12 @@ static void engine_draw_frame(struct engine* engine) {
     glClearColor(((float)engine->state.x)/engine->width, engine->state.angle,
                  ((float)engine->state.y)/engine->height, 1);
     glClear(GL_COLOR_BUFFER_BIT);
-
+    // 交换display和surface，即绘制操作。
     eglSwapBuffers(engine->display, engine->surface);
 }
 
 /**
- * Tear down the EGL context currently associated with the display.
+ * 卸载EGLContext.
  */
 static void engine_term_display(struct engine* engine) {
     if (engine->display != EGL_NO_DISPLAY) {
@@ -192,10 +192,12 @@ static void engine_term_display(struct engine* engine) {
 }
 
 /**
- * Process the next input event.
+ * 处理事件输入，包含两种事件，按键事件和触摸事件。
  */
 static int32_t engine_handle_input(struct android_app* app, AInputEvent* event) {
     struct engine* engine = (struct engine*)app->userData;
+    // AINPUT_EVENT_TYPE_KEY : 按键事件
+    // AINPUT_EVENT_TYPE_MOTION : 触摸事件
     if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
         engine->animating = 1;
         engine->state.x = AMotionEvent_getX(event, 0);
@@ -206,12 +208,13 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event) 
 }
 
 /**
- * Process the next main command.
+ * 处理事件
  */
 static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
     struct engine* engine = (struct engine*)app->userData;
     switch (cmd) {
-        case APP_CMD_SAVE_STATE:
+        case APP_CMD_SAVE_STATE: // 黑屏
+            LOGW("engine_handle_cmd: APP_CMD_SAVE_STATE");
             // The system has asked us to save our current state.  Do so.
             engine->app->savedState = malloc(sizeof(struct saved_state));
             *((struct saved_state*)engine->app->savedState) = engine->state;
@@ -224,11 +227,13 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
                 engine_draw_frame(engine);
             }
             break;
-        case APP_CMD_TERM_WINDOW:
+        case APP_CMD_TERM_WINDOW: // Backup 返回
+            LOGW("engine_handle_cmd: APP_CMD_TERM_WINDOW");
             // The window is being hidden or closed, clean it up.
             engine_term_display(engine);
             break;
         case APP_CMD_GAINED_FOCUS:
+            LOGW("engine_handle_cmd: APP_CMD_GAINED_FOCUS");
             // When our app gains focus, we start monitoring the accelerometer.
             if (engine->accelerometerSensor != NULL) {
                 ASensorEventQueue_enableSensor(engine->sensorEventQueue,
@@ -240,6 +245,7 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
             }
             break;
         case APP_CMD_LOST_FOCUS:
+            LOGW("engine_handle_cmd: APP_CMD_LOST_FOCUS");
             // When our app loses focus, we stop monitoring the accelerometer.
             // This is to avoid consuming battery while not being used.
             if (engine->accelerometerSensor != NULL) {
@@ -299,11 +305,8 @@ ASensorManager* AcquireASensorManagerInstance(android_app* app) {
   return getInstanceFunc();
 }
 
-
 /**
- * This is the main entry point of a native application that is using
- * android_native_app_glue.  It runs in its own thread, with its own
- * event loop for receiving input events and doing other things.
+ * 使用android_native_app_glue时，Activity初始化的主方法main函数，它有自己的thread，包含了线程循环，接收事件处理等逻辑。
  */
 void android_main(struct android_app* state) {
     struct engine engine;
@@ -325,12 +328,12 @@ void android_main(struct android_app* state) {
                                     NULL, NULL);
 
     if (state->savedState != NULL) {
-        // We are starting with a previous saved state; restore from it.
+        // 之前有数据保存记录状态，将之前的数据恢复过来。
+        LOGW("restoreSavedState: ");
         engine.state = *(struct saved_state*)state->savedState;
     }
 
     // loop waiting for stuff to do.
-
     while (1) {
         // Read all pending events.
         int ident;
@@ -340,6 +343,7 @@ void android_main(struct android_app* state) {
         // If not animating, we will block forever waiting for events.
         // If animating, we loop until all events are read, then continue
         // to draw the next frame of animation.
+        // 如果没有在animating，则一直block等待，当animating的时候，所有事件处理完成之后，绘制下一帧。
         while ((ident=ALooper_pollAll(engine.animating ? 0 : -1, NULL, &events,
                                       (void**)&source)) >= 0) {
 
@@ -354,9 +358,9 @@ void android_main(struct android_app* state) {
                     ASensorEvent event;
                     while (ASensorEventQueue_getEvents(engine.sensorEventQueue,
                                                        &event, 1) > 0) {
-                        LOGI("accelerometer: x=%f y=%f z=%f",
-                             event.acceleration.x, event.acceleration.y,
-                             event.acceleration.z);
+                        // LOGI("accelerometer: x=%f y=%f z=%f",
+                        //     event.acceleration.x, event.acceleration.y,
+                        //     event.acceleration.z);
                     }
                 }
             }
@@ -377,6 +381,7 @@ void android_main(struct android_app* state) {
 
             // Drawing is throttled to the screen update rate, so there
             // is no need to do timing here.
+            // 绘制是根据screen的更新频率来进行绘制的，所以不需要进行暂停处理。
             engine_draw_frame(&engine);
         }
     }
