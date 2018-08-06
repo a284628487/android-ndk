@@ -167,7 +167,7 @@ void renderFrame() {
     glUseProgram(gProgram);
     checkGlError("glUseProgram");
     // glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer);
-    // 第二个参数表示每个顶点所占的坐标值个数，在这些是二维坐标，所以一个基点就只有两个坐标值。
+    // 第二个参数表示每个顶点所占的坐标值个数，在这里都是二维坐标，所以一个顶点就只有两个坐标值。
     glVertexAttribPointer(gvPositionHandle, 2, GL_FLOAT, GL_FALSE, 0, gTriangleVertices);
     checkGlError("glVertexAttribPointer");
     // 启用顶点
@@ -180,8 +180,9 @@ void renderFrame() {
 
 extern "C" {
 JNIEXPORT void JNICALL
-Java_com_android_gl2jni_GL2JNILib_init(JNIEnv *env, jobject obj, jint width, jint height);
-JNIEXPORT void JNICALL Java_com_android_gl2jni_GL2JNILib_step(JNIEnv *env, jobject obj);
+    Java_com_android_gl2jni_GL2JNILib_init(JNIEnv *env, jobject obj, jint width, jint height);
+JNIEXPORT void JNICALL
+    Java_com_android_gl2jni_GL2JNILib_step(JNIEnv *env, jobject obj);
 };
 
 // invoked from GLSurfaceView.Renderer#onSurfaceChanged
@@ -223,8 +224,8 @@ class GL2JNIView extends GLSurfaceView {
         setRenderer(new Renderer());
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
     }
-
 ```
+> 源Demo里面，`GL2JNIView`有`chooseConfig`的操作，但是注释掉Demo也照样正常运行，**GLSurfaceView**已经帮我们把这些事情做了，所以应该可以忽略掉。
 
 ### Renderer.java
 
